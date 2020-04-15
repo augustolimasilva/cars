@@ -1,18 +1,18 @@
 import React, { Component } from 'react';
 
 import { observer } from 'mobx-react';
-
 import MaterialTable from 'material-table';
-import CarStore from './CarStore';
+import ListCarStore from './ListCarStore';
 
-class Car extends Component {
+@observer
+class ListCar extends Component {
   constructor(props) {
     super(props);
-    this.store = CarStore.create({});    
+    this.store = ListCarStore.create({});    
     this.store
         .onInit()
         .then(result => console.log(result))
-        .catch(error => console.log(error));        
+        .catch(error => console.log(error));    
   }
 
   render() {
@@ -26,36 +26,33 @@ class Car extends Component {
       { title: 'Price Weekend Day Loyalty', field: 'priceWeekendDayLoyalty', type: 'numeric'},
       { title: 'Manufacture', field: 'manufacture'}
     ];
-
+    
     return (
       <MaterialTable
         title="Cars"
         columns = {columns}
         data = {this.store.carsResponse}
         editable={{
-          onRowDelete: (oldData) => {
-            new Promise((resolve) => {
-              setTimeout(() => {
-                resolve();
-                this.store.delete(oldData.id);
-                //this.store.carsResponse.splice(this.store.carsResponse.indexOf(oldData), 1);
-                //return this.store.carsResponse;
-              }, 600);
+          onRowDelete: oldData => {
+            return new Promise((resolve, reject) => {
+              this.store.delete(oldData.id).then(result => {
+                return resolve(result);
+              }).catch(err => {
+                reject(err);
+              })
             });
           },
           onRowAdd: newData =>
-            new Promise(resolve => {
-              setTimeout(() => {
-                resolve();
-                this.store.insert(newData);
-                
-                return this.store.carsResponse;
-              }, 600);
+            new Promise((resolve, reject) => {
+              this.store.insert(newData).then(result => {
+                return resolve(result);
+              }).catch(err => {
+                reject(err);
+              })
             }),
         }}
       />
     );
   }
 }
-
-export default observer(Car);
+export default observer(ListCar);
